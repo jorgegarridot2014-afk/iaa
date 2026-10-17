@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tríptico</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #16181c;
+    --panel: #1d2025;
+    --line: #2c3038;
+    --ink: #ece9e2;
+    --ink-dim: #8d9199;
+    --accent: #6fd6c4;
+    --accent-dim: #6fd6c433;
+    font-family: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  }
+  :root:not([data-theme="light"]) { color-scheme: dark; }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg: #f4f2ec; --panel: #ffffff; --line: #ddd8cc;
+      --ink: #1c1d1f; --ink-dim: #6b6e73;
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #f4f2ec; --panel: #ffffff; --line: #ddd8cc;
+    --ink: #1c1d1f; --ink-dim: #6b6e73;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: radial-gradient(circle at top left, #222633, var(--bg));
+    color: var(--ink);
+    display: flex;
+    flex-direction: column;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    overflow: hidden;
+  }
+  header {
+    padding: 18px 20px 0;
+    flex-shrink: 0;
+  }
+  h1 {
+    margin: 0 0 2px;
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .sub {
+    margin: 0 0 14px;
+    font-size: 12.5px;
+    color: var(--ink-dim);
+  }
+  nav.dial {
+    display: flex;
+    gap: 6px;
+    border-bottom: 1px solid var(--line);
+  }
+  .mode-btn {
+    flex: 1;
+    background: none;
+    border: none;
+    color: var(--ink-dim);
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 500;
+    padding: 10px 4px 12px;
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    transition: color .15s ease, background .15s ease, transform .12s ease;
+  }
+  .mode-btn .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--ink-dim);
+    transition: background .15s ease, box-shadow .15s ease;
+  }
+  .mode-btn:hover {
+    background: rgba(255,255,255,0.03);
+    transform: translateY(-1px);
+  }
+  .mode-btn.active { color: var(--ink); }
+  .mode-btn.active .dot {
+    background: var(--accent);
+    box-shadow: 0 0 0 4px var(--accent-dim);
+  }
+  .mode-btn::after {
+    content: "";
+    position: absolute;
+    left: 8px; right: 8px; bottom: -1px;
+    height: 2px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transition: transform .18s ease;
+  }
+  .mode-btn.active::after { transform: scaleX(1); }
+
+  main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .empty {
+    margin: auto;
+    text-align: center;
+    color: var(--ink-dim);
+    max-width: 320px;
+    font-size: 13.5px;
+    line-height: 1.5;
+  }
+  .empty b { color: var(--ink); display: block; font-size: 15px; margin-bottom: 4px; }
+
+  .msg {
+    display: flex;
+    flex-direction: column;
+    max-width: 88%;
+    animation: fadeIn .18s ease-out;
+  }
+  .msg.user { align-self: flex-end; align-items: flex-end; }
+  .msg.assistant { align-self: flex-start; align-items: flex-start; }
+  .bubble {
+    padding: 10px 13px;
+    border-radius: 3px;
+    font-size: 14.5px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .msg.user .bubble {
+    background: var(--accent);
+    color: #0d1210;
+    border-radius: 10px 10px 2px 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+  }
+  .msg.assistant .bubble {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px 10px 10px 2px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+  .msg.assistant .bubble code, .msg.assistant .bubble pre {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 13px;
+  }
+  .msg.assistant .bubble pre {
+    background: var(--bg);
+    padding: 10px;
+    border-radius: 6px;
+    overflow-x: auto;
+    margin: 6px 0;
+  }
+  .thinking {
+    color: var(--ink-dim);
+    font-size: 13px;
+    font-style: italic;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .thinking span {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--ink-dim);
+    animation: dots 1s infinite ease-in-out;
+  }
+  .thinking span:nth-child(2) { animation-delay: .15s; }
+  .thinking span:nth-child(3) { animation-delay: .3s; }
+
+  .drawing {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+  }
+  .drawing svg {
+    max-width: 100%;
+    max-height: 420px;
+    height: auto;
+    display: block;
+  }
+
+  footer {
+    flex-shrink: 0;
+    padding: 12px 20px calc(14px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--line);
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+    background: linear-gradient(to top, rgba(0,0,0,0.35), transparent);
+  }
+  textarea {
+    flex: 1;
+    resize: none;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 14.5px;
+    padding: 10px 12px;
+    max-height: 120px;
+    line-height: 1.4;
+    transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+  }
+  textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent-dim);
+    background: #1f2228;
+  }
+  button.send {
+    background: var(--accent);
+    color: #0d1210;
+    border: none;
+    border-radius: 10px;
+    width: 42px; height: 42px;
+    flex-shrink: 0;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+    transition: transform .12s ease, box-shadow .12s ease, background .15s ease;
+  }
+  button.send:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.35);
+    background: #7fe0cf;
+  }
+  button.send:disabled { opacity: .4; cursor: default; transform: none; box-shadow: none; }
+  button.send:focus-visible, .mode-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes dots {
+    0%, 20% { transform: translateY(0); opacity: .6; }
+    50% { transform: translateY(-2px); opacity: 1; }
+    100% { transform: translateY(0); opacity: .6; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Tríptico</h1>
+  <p class="sub" id="subtitle">Una misma IA, tres formas de pensar.</p>
+  <nav class="dial" id="dial"></nav>
+</header>
+
+<main id="chat"></main>
+
+<footer>
+  <textarea id="input" rows="1" placeholder="Escribe algo…"></textarea>
+  <button class="send" id="sendBtn" aria-label="Enviar">↑</button>
+</footer>
+
+<script>
+const MODES = {
+  codigo: {
+    label: 'Código',
+    accent: '#6fd6c4',
+    sub: 'Ingeniería de software: precisión, criterio técnico, código correcto.',
+    empty: { title: 'Modo Código', body: 'Pídeme código, revisiones, arquitectura, debugging o explicaciones técnicas.' },
+    system: `Eres un ingeniero de software senior con criterio profesional, claridad y precisión.
+Tu estilo:
+- Explicas decisiones técnicas con fundamentos reales.
+- Detectas errores, riesgos y malas prácticas sin que te lo pidan.
+- Propones soluciones limpias, escalables y mantenibles.
+- Cuando escribes código, usas bloques con triple backtick y el lenguaje correcto.
+- Eres directo, pero educado; no rellenas ni repites.
+- Puedes sugerir optimizaciones, patrones, refactors y alternativas.
+
+Tu objetivo es ayudar al usuario a producir código correcto, claro y profesional.
+Responde siempre en español.`
+  },
+  vida: {
+    label: 'Día a día',
+    accent: '#e8a33d',
+    sub: 'Asistente práctico para la vida cotidiana: claro, cercano, útil.',
+    empty: { title: 'Modo Día a día', body: 'Pregúntame sobre organización, decisiones cotidianas, recetas, planes, dudas prácticas.' },
+    system: `Eres un asistente personal moderno, cálido y práctico. Tu objetivo es ayudar al usuario a resolver su vida diaria con claridad, empatía y soluciones reales. Hablas de forma natural, cercana y humana, sin sonar robótico.
+
+Tu estilo:
+- Explicas las cosas con sencillez, sin tecnicismos innecesarios.
+- Das consejos accionables: pasos, opciones, alternativas.
+- Te adaptas al tono del usuario.
+- No rellenas ni repites información.
+- Eres directo, pero amable.
+- Puedes usar un toque ligero de humor cuando encaje.
+- Eres flexible: organización, decisiones, recetas, relaciones, estudios, trabajo, dudas prácticas.
+
+Tu forma de responder:
+- Primero entiendes el problema.
+- Luego das una solución clara.
+- Si es útil, añades pasos concretos.
+- Si falta contexto, preguntas lo justo.
+
+Responde siempre en español.`
+  },
+  ciencia: {
+    label: 'Ciencia',
+    accent: '#9b7fe0',
+    sub: 'Explicaciones científicas rigurosas, con matices y honestidad sobre la incertidumbre.',
+    empty: { title: 'Modo Ciencia', body: 'Pregúntame sobre física, biología, química, matemáticas o cualquier tema científico.' },
+    system: `Eres un científico y divulgador de alto nivel. Explicas conceptos con rigor, claridad y honestidad intelectual.
+
+Tu estilo:
+- Citas el consenso científico cuando existe.
+- Señalas incertidumbre, debate o falta de consenso cuando corresponde.
+- Estructuras explicaciones complejas paso a paso.
+- Usas analogías solo cuando ayudan sin perder precisión.
+- Evitas simplificaciones incorrectas.
+- Puedes mencionar modelos, teorías, límites experimentales y evidencia.
+
+Tu objetivo es que el usuario entienda el concepto con profundidad real.
+Responde siempre en español.`
+  },
+  imagenes: {
+    label: 'Imágenes',
+    accent: '#e0708f',
+    sub: 'Ilustraciones vectoriales generadas al vuelo a partir de una descripción.',
+    empty: { title: 'Modo Imágenes', body: 'Descríbeme algo y lo dibujo como ilustración vectorial: "un gato astronauta", "un logo minimalista de una montaña"…' },
+    isDrawing: true,
+    system: `Eres un ilustrador que dibuja exclusivamente mediante código SVG. Tu respuesta ENTERA debe ser un único elemento <svg>...</svg> válido y autocontenido, con viewBox="0 0 500 500".
+Reglas estrictas de formato: la respuesta debe EMPEZAR literalmente con "<svg" y TERMINAR literalmente con "</svg>". Prohibido: bloques de código con triple backtick, la palabra "svg" o cualquier texto antes del "<svg" inicial, explicaciones, comentarios o texto después del "</svg>" final.
+Reglas de dibujo: TODA forma (rect, circle, path, etc.) debe llevar un atributo fill explícito con un color concreto (nunca lo dejes implícito, porque por defecto se pinta negro sólido y puede tapar el resto del dibujo); dibuja primero el fondo y luego los elementos por encima, en orden correcto; usa un fondo de color suave o con degradado salvo que el tema pida explícitamente una escena nocturna o espacial, y en ese caso usa un azul muy oscuro (nunca #000000 puro) para que se distinga del vacío.
+Usa formas, paths, gradientes y colores para crear una ilustración vectorial limpia, estilizada y visualmente atractiva del tema pedido (estilo plano/geométrico, no fotorrealista). No uses <script>, <foreignObject> ni referencias externas. Si el usuario pide un ajuste sobre el dibujo anterior, genera el SVG completo actualizado, no un diff.`
+  }
+};
+
+let currentMode = 'codigo';
+let histories = { codigo: [], vida: [], ciencia: [], imagenes: [] };
+let clients = { codigo: null, vida: null, ciencia: null, imagenes: null };
+
+try {
+  const saved = localStorage.getItem('triptico-histories');
+  if (saved) {
+    const parsed = JSON.parse(saved);
+    histories = { ...histories, ...parsed };
+    Object.keys(MODES).forEach(k => { if (!Array.isArray(histories[k])) histories[k] = []; });
+  }
+} catch (e) {}
+
+function saveHistories() {
+  try { localStorage.setItem('triptico-histories', JSON.stringify(histories)); } catch (e) {}
+}
+
+function setTheme() {
+  document.documentElement.style.setProperty('--accent', MODES[currentMode].accent);
+  document.documentElement.style.setProperty('--accent-dim', MODES[currentMode].accent + '33');
+}
+
+function renderDial() {
+  const dial = document.getElementById('dial');
+  dial.innerHTML = '';
+  Object.entries(MODES).forEach(([key, m]) => {
+    const btn = document.createElement('button');
+    btn.className = 'mode-btn' + (key === currentMode ? ' active' : '');
+    btn.innerHTML = `<span class="dot"></span>${m.label}`;
+    btn.addEventListener('click', () => switchMode(key));
+    dial.appendChild(btn);
+  });
+}
+
+function switchMode(key) {
+  currentMode = key;
+  setTheme();
+  document.getElementById('subtitle').textContent = MODES[key].sub;
+  renderDial();
+  renderChat();
+}
+
+function escapeHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function formatBubble(text) {
+  const escaped = escapeHtml(text);
+  return escaped.replace(/```([\s\S]*?)```/g, (_, code) => `<pre>${code}</pre>`)
+                 .replace(/`([^`]+)`/g, '<code>$1</code>');
+}
+
+function decodeEntities(str) {
+  const ta = document.createElement('textarea');
+  ta.innerHTML = str;
+  return ta.value;
+}
+
+function isValidSvg(svgString) {
+  try {
+    const doc = new DOMParser().parseFromString(svgString, 'image/svg+xml');
+    if (doc.querySelector('parsererror')) return false;
+    const root = doc.documentElement;
+    return root && root.tagName.toLowerCase() === 'svg' && root.childElementCount > 0;
+  } catch (e) {
+    return false;
+  }
+}
+
+function extractSvg(text) {
+  if (!text) return null;
+  let m = text.match(/<svg[\s\S]*?<\/svg>/i);
+  if (m && isValidSvg(m[0])) return m[0];
+
+  const fence = text.match(/```[a-z]*\s*([\s\S]*?)```/i);
+  if (fence) {
+    m = fence[1].match(/<svg[\s\S]*?<\/svg>/i);
+    if (m && isValidSvg(m[0])) return m[0];
+  }
+
+  const decoded = decodeEntities(text);
+  m = decoded.match(/<svg[\s\S]*?<\/svg>/i);
+  if (m && isValidSvg(m[0])) return m[0];
+
+  return null;
+}
+
+function sanitizeSvg(svg) {
+  return svg
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+    .replace(/\son\w+="[^"]*"/gi, '')
+    .replace(/\son\w+='[^']*'/gi, '');
+}
+
+function renderChat() {
+  const chat = document.getElementById('chat');
+  chat.innerHTML = '';
+  const hist = histories[currentMode];
+  if (hist.length === 0) {
+    const e = MODES[currentMode].empty;
+    chat.innerHTML = `<div class="empty"><b>${e.title}</b>${e.body}</div>`;
+    return;
+  }
+  hist.forEach(m => {
+    const div = document.createElement('div');
+    div.className = 'msg ' + m.role;
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    const svg = m.role === 'assistant' ? extractSvg(m.content) : null;
+    if (svg) {
+      bubble.classList.add('drawing');
+      bubble.innerHTML = sanitizeSvg(svg);
+    } else {
+      bubble.innerHTML = formatBubble(m.content);
+    }
+    div.appendChild(bubble);
+    chat.appendChild(div);
+  });
+  chat.scrollTop = chat.scrollHeight;
+}
+
+async function getClientForMode(mode) {
+  if (clients[mode]) return clients[mode];
+  if (mode === 'codigo' || mode === 'ciencia') {
+    clients[mode] = await claude.use('sample');
+  } else {
+    clients[mode] = await gemini.use('sample');
+  }
+  return clients[mode];
+}
+
+async function send() {
+  const input = document.getElementById('input');
+  const text = input.value.trim();
+  if (!text) return;
+  const btn = document.getElementById('sendBtn');
+
+  if (!Array.isArray(histories[currentMode])) histories[currentMode] = [];
+  histories[currentMode].push({ role: 'user', content: text });
+  input.value = '';
+  input.style.height = 'auto';
+  renderChat();
+  saveHistories();
+
+  btn.disabled = true;
+
+  const chat = document.getElementById('chat');
+  const thinkDiv = document.createElement('div');
+  thinkDiv.className = 'msg assistant';
+  thinkDiv.innerHTML = `<div class="bubble thinking">Pensando… <span></span><span></span><span></span></div>`;
+  chat.appendChild(thinkDiv);
+  chat.scrollTop = chat.scrollHeight;
+
+  try {
+    const messages = [
+      ...histories[currentMode].slice(0, -1),
+      { role: 'user', content: text }
+    ];
+    const payload = {
+      prompt: `${MODES[currentMode].system}\n\n---\n\nHistorial de la conversación (más reciente al final):\n${messages.map(m => `${m.role === 'user' ? 'Usuario' : 'Asistente'}: ${m.content}`).join('\n\n')}\n\nResponde ahora como el asistente, directamente, sin repetir el historial.`
+    };
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const result = await response.json();
+    const reply = result.text || '';
+
+    const finalBubble = thinkDiv.querySelector('.bubble');
+    finalBubble.classList.remove('thinking');
+    const finalSvg = extractSvg(reply);
+    if (finalSvg) {
+      finalBubble.classList.add('drawing');
+      finalBubble.innerHTML = sanitizeSvg(finalSvg);
+    } else {
+      finalBubble.innerHTML = formatBubble(reply);
+    }
+    histories[currentMode].push({ role: 'assistant', content: reply });
+    saveHistories();
+
+    // live preview of streaming not supported; show final
+    const b = thinkDiv.querySelector('.bubble');
+    if (b) b.innerHTML = finalSvg ? sanitizeSvg(finalSvg) : formatBubble(reply);
+  } catch (err) {
+    const bubble = thinkDiv.querySelector('.bubble');
+    bubble.classList.remove('thinking');
+    bubble.textContent = 'Algo falló al generar la respuesta. Inténtalo de nuevo.';
+  } finally {
+    btn.disabled = false;
+    chat.scrollTop = chat.scrollHeight;
+  }
+}
+
+document.getElementById('sendBtn').addEventListener('click', send);
+const inputEl = document.getElementById('input');
+inputEl.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+});
+inputEl.addEventListener('input', () => {
+  inputEl.style.height = 'auto';
+  inputEl.style.height = Math.min(inputEl.scrollHeight, 120) + 'px';
+});
+
+// Atajos de teclado para cambiar de modo
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey) {
+    if (e.key === '1') switchMode('codigo');
+    if (e.key === '2') switchMode('vida');
+    if (e.key === '3') switchMode('ciencia');
+    if (e.key === '4') switchMode('imagenes');
+  }
+});
+
+setTheme();
+renderDial();
+renderChat();
+</script>
+</body>
+</html>
