@@ -397,10 +397,11 @@ function escapeHtml(s) {
 }
 
 function formatBubble(text) {
-  const escaped = escapeHtml(text);
-  return escaped.replace(/```([\s\S]*?)```/g, (_, code) => `<pre>${code}</pre>`)
-                 .replace(/`([^`]+)`/g, '<code>$1</code>');
-}
+   const escaped = escapeHtml(text);
+   return escaped.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width:100%;border-radius:8px;" />')
+                  .replace(/```([\s\S]*?)```/g, (_, code) => `<pre>${code}</pre>`)
+                  .replace(/`([^`]+)`/g, '<code>$1</code>');
+ }
 
 function decodeEntities(str) {
   const ta = document.createElement('textarea');
@@ -503,11 +504,23 @@ async function send() {
   chat.appendChild(thinkDiv);
   chat.scrollTop = chat.scrollHeight;
 
-  try {
-    const messages = [
-      ...histories[currentMode].slice(0, -1),
-      { role: 'user', content: text }
-    ];
+   if (currentMode === 'imagenes') {
+     const imgPrompt = encodeURIComponent(text);
+     const imgUrl = `https://image.pollinations.ai/prompt/${imgPrompt}?width=512&height=512&nologo=true`;
+     histories[currentMode].push({ role: 'assistant', content: `![imagen](${imgUrl})` });
+     saveHistories();
+     try { thinkDiv.remove(); } catch(e) {}
+     renderChat();
+     btn.disabled = false;
+     chat.scrollTop = chat.scrollHeight;
+     return;
+   }
+
+   try {
+     const messages = [
+       ...histories[currentMode].slice(0, -1),
+       { role: 'user', content: text }
+     ];
     const payload = {
       prompt: `${MODES[currentMode].system}\n\n---\n\nHistorial de la conversación (más reciente al final):\n${messages.map(m => `${m.role === 'user' ? 'Usuario' : 'Asistente'}: ${m.content}`).join('\n\n')}\n\nResponde ahora como el asistente, directamente, sin repetir el historial.`
     };
