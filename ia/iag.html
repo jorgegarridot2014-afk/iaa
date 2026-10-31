@@ -49,6 +49,23 @@
     font-weight: 700;
     letter-spacing: -0.01em;
   }
+  .back-btn {
+    position: absolute;
+    top: 18px;
+    right: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-dim);
+    text-decoration: none;
+    transition: color .15s ease;
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+  }
+  .back-btn:hover {
+    color: var(--accent);
+    background: var(--accent-dim);
+  }
   .sub {
     margin: 0 0 14px;
     font-size: 12.5px;
@@ -261,8 +278,9 @@
 </head>
 <body>
 
-<header>
-  <h1>Tríptico</h1>
+<header style="position: relative;">
+  <h1 style="display: inline-block;">Tríptico</h1>
+  <a href="https://losandeleros.onrender.com" class="back-btn">Volver</a>
   <p class="sub" id="subtitle">Una misma IA, tres formas de pensar.</p>
   <nav class="dial" id="dial"></nav>
 </header>
